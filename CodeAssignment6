@@ -1,0 +1,289 @@
+html
+
+<form [formGroup]="profileForm" (ngSubmit)="submit()">
+   
+    <!-- <form action="action_page.php" method="post"> -->
+   
+
+    <div class="container">
+        <label for="uname"><b>Username</b></label> &nbsp;
+        <input type="text" placeholder="Enter Username" name="username" required formControlName="username"><br><br>
+        <div *ngIf=" f['username'].touched" class="alert alert-danger">
+
+          <div *ngIf="f['username'].invalid">Username is required</div>
+    
+          </div>
+        <label for="psw"><b>Password</b></label> &nbsp;
+
+        <input type="password" placeholder="Enter Password" name="password" required formControlName="password"><br>
+        <div *ngIf=" f['password'].touched" class="alert alert-danger">
+
+          <div *ngIf="f['password'].invalid">Password is required</div>
+
+          </div>
+        <br>
+        <button type="submit" style="text-align: center;">Login</button><br>
+
+        <button type="button" class="cancelbtn">Cancel</button><br>
+       <label> <input type="checkbox" checked="checked" name="remember"> Remember me </label> <br> <br>
+   </div>
+   <div class="container" style="background-color:#f1f1f1">
+        &nbsp;
+        <span class="psw">Forgot <a href="#">password?</a></span>
+    </div>
+    <tr *ngFor="let homedata of users ">
+
+        <td>{{homedata.id}}</td>
+        <td>{{homedata.name}}</td>
+       
+        <!--Change it,,,,-->
+       
+       </tr>
+       <div *ngIf="number % 2 == 0; else showOdd">
+       
+         Even number {{ number | currency}}
+       
+       </div>
+       
+       <ng-template #showOdd>
+       
+       Odd number {{ number | currency}}
+       
+       </ng-template>
+       
+       <button type="button" style="text-align: center;">Display one record</button><br>
+       <button type="button" (click)="getallUser()">getallUser</button>
+       <h1 style="color: crimson;">{{usha}}</h1>
+       <table class="table">
+
+        <tr *ngFor="let user of users ">
+        
+        
+        
+          <td>{{user.id}}</td>&nbsp;
+        
+          <td>{{user.username}}</td>&nbsp;
+        
+          <td>{{user.password}}</td>&nbsp;
+        
+          <button class="btn btn-danger" type="button" (click)="deleteUser(user.id )">Delete record</button><br>
+        
+         </tr>
+        
+        </table>  
+        <app-footer></app-footer>  
+       
+       
+       ts file
+       
+       import { Component, OnInit } from '@angular/core';
+
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+
+import { LoginService } from '../login.service';
+
+import { User } from '../user';
+
+
+@Component({
+
+  selector: 'app-login',
+
+  templateUrl: './login.component.html',
+
+  styleUrls: ['./login.component.css']
+
+})
+
+export class LoginComponent implements OnInit {
+
+  user: User = new User();
+
+  users: any;
+
+  number=102;
+
+  usha:any;
+
+    deleteMessage:any ;
+
+  constructor(private loginService: LoginService) { }
+  
+
+  ngOnDestroy(): void {
+
+    console.log("I am destroyer");
+
+  }
+
+  profileForm = new FormGroup({
+
+    username: new FormControl('', [Validators.required, Validators.minLength(5)]),
+    password: new FormControl('', [Validators.required, Validators.minLength(6)]),
+
+
+
+  });
+  get f()
+
+  {
+
+    return this.profileForm.controls
+
+  }
+  // Here we will develope the logic initialis the variable which are comming from forms
+  get username():any{
+
+    return this.profileForm.get('username');
+
+  }
+
+  submit() {
+
+    console.log(this.profileForm.value)
+
+    //Here logic will be there Develop your application can add logic here to call API Hit
+
+    this.getUserListData()
+     //Here logic will be there Develop your application can add logic here to call API Hit
+
+    //here we are gng to create the object user entity then we will call the api hit for the post operation
+
+    this.user.username=this.f['username'].value;
+
+    this.user.password=this.f['password'].value;
+
+
+
+    //we are gng to call post operation
+
+    this.postUser();
+
+  }
+ 
+// this method will delete a specific record from the backend and db
+deleteUser(id: number) {
+
+  this.loginService.deleteUser(id)
+
+    .subscribe(
+
+      data => {
+
+        console.log(data);
+
+        this.deleteMessage=true;
+
+        this.loginService.getUserList().subscribe(data =>{
+
+          this.users =data
+
+          })
+
+      },
+
+      error => console.log(error));
+
+}
+
+
+
+  //this method will post record in backend
+
+  postUser() {                                   //Calls the REST API throgh the services
+
+
+
+    this.loginService.createUser(this.user)
+
+
+
+      .subscribe(data => console.log(data), error => console.log(error));
+
+
+
+    this.user = new User();
+ }
+
+
+
+  // both the methods which are there is respected form must be defined here
+
+  getallUser(){
+
+    //here we are going to call the API fro the get users
+   this.usha = "usha";
+   this.loginService.getUserList().subscribe((data: any) => {
+console.log ("Hii all");
+    this.users = data;  // we are pulled data from backend to the UI inside TS file and taken on HTML file
+  })
+
+
+   
+  }
+
+
+  ngOnInit(): void {
+
+  }
+
+   getUserListData(this: any) {
+
+    console.log("Hi this is usha");
+
+    this.loginService.getUserList().subscribe((data: any) => {
+
+      console.log("Hi this is divya");
+
+
+
+
+      this.users = data;  // we are pulled data from backend to the UI inside TS file and taken on HTML file.
+
+
+
+      console.log(this.users);
+
+
+
+      // this.dtTrigger.next();
+
+
+
+
+
+    })
+
+
+
+  }
+
+}
+
+
+
+css file
+
+body {font-family: Arial, Helvetica, sans-serif; text-align: center;}
+
+
+form {border: 3px solid #f1f1f1;}
+
+input[type=text], input[type=password] {
+
+    width: 25%;
+
+    padding: 6px 0px;
+
+    margin: 5px 0;
+
+    display: inline-block;
+
+    border: 1px solid #ccc;
+
+    box-sizing: border-box;
+    text-align: center;
+
+  }
+
+
